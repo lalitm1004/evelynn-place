@@ -9,7 +9,119 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
+}
+
+model UserProfile {
+  id            String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String
+  email         String                @unique
+  type          UserType              @default(STUDENT)
+  role          UserRole              @default(BASE)
+  isWhitelisted Boolean               @default(false) @map("is_whitelisted")
+  createdAt     DateTime              @default(now()) @map("created_at")
+  //
+  enrollment    Enrollment[]
+  helpsWith     CourseSectionHelper[]
+  academicEvent AcademicEvent[]
+
+  @@map("user_profile")
+}
+
+model Enrollment {
+  userId          String        @map("user_id") @db.Uuid
+  courseSectionId String        @map("course_section_id") @db.VarChar(12)
+  //
+  user            UserProfile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseSection   CourseSection @relation(fields: [courseSectionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, courseSectionId])
+  @@map("enrollment")
+}
+
+model CourseSectionHelper {
+  userId          String        @map("user_id") @db.Uuid
+  courseSectionId String        @map("course_section_id") @db.VarChar(12)
+  //
+  user            UserProfile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseSection   CourseSection @relation(fields: [courseSectionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, courseSectionId])
+  @@map("course_section_helper")
+}
+
+model Course {
+  id          String          @id @default(dbgenerated("nanoid(12)")) @db.VarChar(12)
+  code        String          @db.VarChar(6)
+  semesterId  String          @db.VarChar(6)
+  title       String
+  description String?
+  //
+  semester    Semester        @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+  sections    CourseSection[]
+
+  @@unique([code, semesterId])
+  @@map("course")
+}
+
+model CourseSection {
+  id            String                @id @default(dbgenerated("nanoid(12)")) @db.VarChar(12)
+  name          String                @unique
+  courseId      String                @db.VarChar(12)
+  //
+  course        Course                @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  enrollment    Enrollment[]
+  helpers       CourseSectionHelper[]
+  academicEvent AcademicEvent[]
+
+  @@map("course_section")
+}
+
+model Semester {
+  id       String       @id @db.VarChar(6)
+  year     Int
+  type     SemesterType
+  isActive Boolean      @map("is_active")
+  //
+  courses  Course[]
+
+  @@unique([year, type])
+  @@map("semester")
+}
+
+model AcademicEvent {
+  id              String        @id @default(dbgenerated("nanoid(24)")) @db.VarChar(24)
+  title           String
+  description     String?
+  deadline        DateTime
+  userId          String        @db.Uuid
+  courseSectionId String        @db.VarChar(12)
+  createdAt       DateTime      @default(now()) @map("created_at")
+  //
+  user            UserProfile   @relation(fields: [userId], references: [id])
+  courseSection   CourseSection @relation(fields: [courseSectionId], references: [id], onDelete: Cascade)
+
+  @@map("academic_event")
+}
+
+enum UserType {
+  STUDENT
+  FACULTY
+  CLUB
+}
+
+enum UserRole {
+  ADMIN
+  MODERATOR
+  HELPER
+  BASE
+}
+
+enum SemesterType {
+  SPRING
+  SUMMER
+  MONSOON
+  WINTER
 }
