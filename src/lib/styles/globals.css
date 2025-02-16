@@ -1,3 +1,22 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@font-face {
+    font-family: 'Supreme';
+    font-style: normal;
+    src:
+        url('/assets/fonts/Supreme-Variable.woff2') format('woff2'),
+        url('/assets/fonts/Supreme-Variable.woff') format('woff'),
+        url('/assets/fonts/Supreme-Variable.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Kola';
+    font-style: normal;
+    font-weight: 400;
+    src:
+        url('/assets/fonts/Kola-Regular.woff2') format('woff2'),
+        url('/assets/fonts/Kola-Regular.woff') format('woff'),
+        url('/assets/fonts/Kola-Regular.ttf') format('truetype');
+}

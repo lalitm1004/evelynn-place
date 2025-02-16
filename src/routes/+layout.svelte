@@ -56,12 +56,10 @@
             }
 
             if (newSession && newSession.provider_token) {
-                console.log('access - ', newSession.provider_token)
                 setAccessToken(newSession.provider_token);
             }
 
             if (newSession && newSession.provider_refresh_token) {
-                console.log('refresh - ', newSession.provider_refresh_token)
                 setRefreshToken(newSession.provider_refresh_token);
             }
 
