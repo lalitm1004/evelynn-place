@@ -9,7 +9,7 @@
     }
 
     .add-button {
-        @apply hover:bg-neutral-400/40 dark:hover:bg-gray-800/80 active:bg-neutral-400/60 dark:active:bg-gray-800/60 transition-colors duration-300
+        @apply hover:bg-neutral-400/40 dark:hover:bg-gray-800/80 active:bg-neutral-400/60 dark:active:bg-gray-800/60 transition-colors duration-100
     }
 }
 

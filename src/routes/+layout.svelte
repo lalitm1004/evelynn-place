@@ -6,7 +6,7 @@
     import { SupaStore, UserStore } from '$lib/stores/SupabaseStore.js';
     import { accessToken, refreshToken, setAccessToken, setRefreshToken } from '$lib/stores/TokenStore.js';
     import { setDevice, setTheme, theme } from '$lib/stores/VisualStore.js';
-    import ThemeDebug from '$lib/components/ThemeDebug.svelte';
+    import Navbar from '$lib/components/Navbar.svelte';
 
     let { data, children } = $props();
     let { supabase, session, user } = $derived(data);
@@ -91,7 +91,5 @@
 <!-- handle device on resize -->
 <svelte:window onresize={() => setDevice(window.matchMedia('(max-width: 767px)').matches ? 'mobile' : 'desktop')}/>
 
+<Navbar />
 {@render children()}
-
-<!-- remove -->
-<ThemeDebug />
