@@ -6,15 +6,10 @@
     import { SupaStore, UserStore } from '$lib/stores/SupabaseStore.js';
     import { accessToken, refreshToken, setAccessToken, setRefreshToken } from '$lib/stores/TokenStore.js';
     import { setDevice, setTheme, theme } from '$lib/stores/VisualStore.js';
+    import ThemeDebug from '$lib/components/ThemeDebug.svelte';
 
     let { data, children } = $props();
     let { supabase, session, user } = $derived(data);
-
-    $effect(() => {
-        // setting stores
-        SupaStore.set(supabase);
-        UserStore.set(user);
-    })
 
     const validateTokens = async () => {
         if (!user) return;
@@ -85,6 +80,10 @@
         if (window.matchMedia('(max-width: 767px)').matches) setDevice('mobile');
         else setDevice('desktop');
 
+        // set store values
+        SupaStore.set(supabase);
+        UserStore.set(user);
+
         return () => subscription.unsubscribe();
     });
 </script>
@@ -93,3 +92,6 @@
 <svelte:window onresize={() => setDevice(window.matchMedia('(max-width: 767px)').matches ? 'mobile' : 'desktop')}/>
 
 {@render children()}
+
+<!-- remove -->
+<ThemeDebug />
