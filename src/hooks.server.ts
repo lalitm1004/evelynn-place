@@ -55,4 +55,52 @@ const createSupabase: Handle = async ({ event, resolve }) => {
     });
 }
 
-export const handle: Handle = sequence(createSupabase);
+const handleVisuals: Handle = async ({ event, resolve }) => {
+    const response = await resolve(event, {
+        transformPageChunk: ({ html }) => {
+            const maxAge = 60 * 60 * 24 * 365;
+
+            // handle theme
+            let currentTheme = event.cookies.get('evelynn-place-theme');
+            if (!currentTheme) {
+                const userPrefersDark = event.request.headers.get('sec-ch-prefers-color-scheme') === 'dark';
+                currentTheme = userPrefersDark ? 'dark' : 'light';
+
+                event.cookies.set('evelynn-place-theme', currentTheme, {
+                    path: '/',
+                    expires: new Date(Date.now() + maxAge),
+                    maxAge,
+                    httpOnly: false,
+                    sameSite: 'strict',
+                });
+            }
+
+            // handle device
+            let currentDevice = event.cookies.get('evelynn-place-device');
+            if (!currentDevice) {
+                const userOnMobile = event.request.headers.get('sec-ch-ua-mobile') === '?1';
+                currentDevice = userOnMobile ? 'mobile' : 'desktop';
+
+                event.cookies.set('evelynn-place-device', currentDevice, {
+                    path: '/',
+                    expires: new Date(Date.now() + maxAge),
+                    maxAge,
+                    httpOnly: false,
+                    sameSite: 'strict',
+                })
+            }
+
+            return html
+                .replace('data-theme=""', `data-theme="${currentTheme}"`)
+                .replace('data-device=""', `data-device="${currentDevice}"`)
+        },
+    });
+
+    response.headers.set('Accept-CH', 'Sec-CH-Prefers-Color-Scheme, Sec-CH-UA-Mobile');
+    response.headers.set('Vary', 'Sec-CH-Prefers-Color-Scheme, Sec-CH-UA-Mobile');
+    response.headers.set('Critical-CH', 'Sec-CH-Prefers-Color-Scheme, Sec-CH-UA-Mobile');
+
+    return response;
+}
+
+export const handle: Handle = sequence(createSupabase, handleVisuals);

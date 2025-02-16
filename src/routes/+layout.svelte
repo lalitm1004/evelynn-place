@@ -1,9 +1,11 @@
 <script lang="ts">
+    import '$lib/styles/globals.css';
+    import { onMount } from 'svelte';
     import { invalidate, invalidateAll } from '$app/navigation';
+    import { getCookie } from '$lib/utils/cookie.js';
     import { SupaStore, UserStore } from '$lib/stores/SupabaseStore.js';
     import { accessToken, refreshToken, setAccessToken, setRefreshToken } from '$lib/stores/TokenStore.js';
-    import { onMount } from 'svelte';
-    import '$lib/styles/globals.css';
+    import { setDevice, setTheme, theme } from '$lib/stores/VisualStore.js';
 
     let { data, children } = $props();
     let { supabase, session, user } = $derived(data);
@@ -73,8 +75,21 @@
             validateTokens();
         });
 
+        // handle theme
+        const themeCookie = getCookie(document.cookie, 'evelynn-place-theme') as Theme | null;
+        if (themeCookie) theme.set(themeCookie);
+        else if (window.matchMedia('(prefers-color-scheme: light)').matches) setTheme('light');
+        else setTheme('dark');
+
+        // handle device
+        if (window.matchMedia('(max-width: 767px)').matches) setDevice('mobile');
+        else setDevice('desktop');
+
         return () => subscription.unsubscribe();
     });
 </script>
+
+<!-- handle device on resize -->
+<svelte:window onresize={() => setDevice(window.matchMedia('(max-width: 767px)').matches ? 'mobile' : 'desktop')}/>
 
 {@render children()}

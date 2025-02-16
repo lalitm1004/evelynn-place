@@ -34,6 +34,8 @@ declare global {
 			startViewTransition(updateCallback: () => Promise<void>): ViewTransition
 		}
 	}
+	type Theme = 'dark' | 'light';
+	type Device = 'mobile' | 'desktop';
 }
 
 export {};
