@@ -3,6 +3,7 @@
     import { page } from "$app/state";
     import ToggleTheme from "$lib/components/ToggleTheme.svelte";
     import Login from "$lib/components/Login.svelte";
+    import { fly, slide } from "svelte/transition";
 
     const internalAnchors = [
         { id: 0, href: '/dashboard', display: 'Dashboard' },
@@ -18,12 +19,23 @@
 </script>
 
 {#if mounted}
-<nav class={`mobile:hidden fixed top-4 left-0 h-[40px] w-dvw flex justify-between items-center px-4`}>
+<nav transition:fly={{ y: '-100%' }} class={`mobile:hidden fixed top-4 left-0 h-[40px] w-dvw flex justify-between items-center px-4`}>
     <div>
         <!-- Breadcrumbs -->
     </div>
 
     <div class={`h-full flex gap-2`}>
+        <!-- home anchor -->
+        {#if page.url.pathname !== '/'}
+            <a
+                transition:slide={{ duration: 1000, axis: 'x' }}
+                class={`h-full font-kola text-xl grid place-items-center`}
+                href={`/`}
+            >
+                evelynn.place
+            </a>
+        {/if}
+
         <!-- internal achors -->
         <div class={`apply-card h-full rounded-full flex items-center px-5 gap-4`}>
             {#each internalAnchors as item (item.id)}
