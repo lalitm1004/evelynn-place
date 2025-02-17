@@ -27,7 +27,7 @@ model UserProfile {
   helpsWith     CourseSectionHelper[]
   academicEvent AcademicEvent[]
 
-  @@map("user_profile")
+  @@map("userprofile")
 }
 
 model Enrollment {
@@ -49,7 +49,7 @@ model CourseSectionHelper {
   courseSection   CourseSection @relation(fields: [courseSectionId], references: [id], onDelete: Cascade)
 
   @@id([userId, courseSectionId])
-  @@map("course_section_helper")
+  @@map("coursesectionhelper")
 }
 
 model Course {
@@ -68,7 +68,7 @@ model Course {
 
 model CourseSection {
   id            String                @id @default(dbgenerated("nanoid(12)")) @db.VarChar(12)
-  name          String                @unique
+  name          String
   courseId      String                @db.VarChar(12)
   //
   course        Course                @relation(fields: [courseId], references: [id], onDelete: Cascade)
@@ -76,7 +76,8 @@ model CourseSection {
   helpers       CourseSectionHelper[]
   academicEvent AcademicEvent[]
 
-  @@map("course_section")
+  @@unique([name, courseId])
+  @@map("coursesection")
 }
 
 model Semester {
@@ -103,7 +104,7 @@ model AcademicEvent {
   user            UserProfile   @relation(fields: [userId], references: [id])
   courseSection   CourseSection @relation(fields: [courseSectionId], references: [id], onDelete: Cascade)
 
-  @@map("academic_event")
+  @@map("academicevent")
 }
 
 enum UserType {
