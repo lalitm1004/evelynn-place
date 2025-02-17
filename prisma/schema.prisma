@@ -93,16 +93,19 @@ model Semester {
 }
 
 model AcademicEvent {
-  id              String        @id @default(dbgenerated("nanoid(24)")) @db.VarChar(24)
+  id              String            @id @default(dbgenerated("nanoid(24)")) @db.VarChar(24)
   title           String
   description     String?
+  type            AcademicEventType
+  isGraded        Boolean?          @map("is_graded")
+  isImportant     Boolean           @default(false) @map("is_important")
   deadline        DateTime
-  userId          String        @db.Uuid
-  courseSectionId String        @db.VarChar(12)
-  createdAt       DateTime      @default(now()) @map("created_at")
+  userId          String            @db.Uuid
+  courseSectionId String            @db.VarChar(12)
+  createdAt       DateTime          @default(now()) @map("created_at")
   //
-  user            UserProfile   @relation(fields: [userId], references: [id])
-  courseSection   CourseSection @relation(fields: [courseSectionId], references: [id], onDelete: Cascade)
+  user            UserProfile       @relation(fields: [userId], references: [id])
+  courseSection   CourseSection     @relation(fields: [courseSectionId], references: [id], onDelete: Cascade)
 
   @@map("academicevent")
 }
@@ -125,4 +128,9 @@ enum SemesterType {
   SUMMER
   MONSOON
   WINTER
+}
+
+enum AcademicEventType {
+  ASSIGNMENT
+  EVALUATION
 }
