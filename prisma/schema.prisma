@@ -26,6 +26,7 @@ model UserProfile {
   enrollment    Enrollment[]
   helpsWith     CourseSectionHelper[]
   academicEvent AcademicEvent[]
+  deployments   UniSyncDeployment?
 
   @@map("userprofile")
 }
@@ -55,7 +56,7 @@ model CourseSectionHelper {
 model Course {
   id          String          @id @default(dbgenerated("nanoid(12)")) @db.VarChar(12)
   code        String          @db.VarChar(6)
-  semesterId  String          @db.VarChar(6)
+  semesterId  String          @map("semester_id") @db.VarChar(6)
   title       String
   description String?
   //
@@ -69,7 +70,7 @@ model Course {
 model CourseSection {
   id            String                @id @default(dbgenerated("nanoid(12)")) @db.VarChar(12)
   name          String
-  courseId      String                @db.VarChar(12)
+  courseId      String                @map("course_id") @db.VarChar(12)
   //
   course        Course                @relation(fields: [courseId], references: [id], onDelete: Cascade)
   enrollment    Enrollment[]
@@ -100,7 +101,7 @@ model AcademicEvent {
   isGraded        Boolean?          @map("is_graded")
   isImportant     Boolean           @default(false) @map("is_important")
   deadline        DateTime
-  userId          String            @db.Uuid
+  userId          String            @map("user_id") @db.Uuid
   courseSectionId String            @db.VarChar(12)
   createdAt       DateTime          @default(now()) @map("created_at")
   //
@@ -108,6 +109,17 @@ model AcademicEvent {
   courseSection   CourseSection     @relation(fields: [courseSectionId], references: [id], onDelete: Cascade)
 
   @@map("academicevent")
+}
+
+model UniSyncDeployment {
+  userId     String      @unique @db.Uuid
+  calendarId String
+  deployedAt DateTime    @default(now()) @map("deployed_at")
+  //
+  user       UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, calendarId])
+  @@map("unisyncdeployment")
 }
 
 enum UserType {
