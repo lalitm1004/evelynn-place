@@ -24,7 +24,7 @@
         setTimeout(() => {
             document.body.style.overflow = 'auto';
             isMenuOpen = false;
-        }, 200)
+        }, 100)
     })
 
     let mounted: boolean = $state(false);
@@ -33,9 +33,9 @@
     })
 </script>
 
-{#if mounted}
-    {#if $device === 'desktop' }
-    <!-- desktop navbar -->
+{#if $device === 'desktop' }
+    {#if mounted}
+        <!-- desktop navbar -->
         <nav transition:fly={{ y: '-100%' }} class={`fixed top-4 left-0 z-30 h-[40px] w-dvw flex justify-between items-center px-4`}>
             <div>
                 <!-- Breadcrumbs -->
@@ -73,9 +73,11 @@
                 </div>
             </div>
         </nav>
-    {:else}
+    {/if}
+{:else}
+    {#if mounted}
         <!-- mobile navbar -->
-        <nav>
+        <nav transition:fade>
             {#if isMenuOpen}
                 <!-- blurring screen -->
                 <button
@@ -85,11 +87,11 @@
                     class={`absolute top-0 left-0 z-20 h-dvh w-dvw bg-black/70 backdrop-blur-sm`}
                 ></button>
 
-                <div transition:slide class={`apply-card absolute top-16 right-4 z-30 w-[60%] flex flex-col items-center gap-2 py-4 px-2 rounded-lg backdrop-blur-0`}>
+                <div transition:slide class={`apply-card absolute top-16 right-4 z-30 w-[60%] flex flex-col items-center gap-3 py-4 px-2 rounded-lg backdrop-blur-0`}>
                     {#each internalAnchors as item (item.id)}
                         <a
                             data-currentpage={page.url.pathname === item.href}
-                            class={`w-full text-right data-[currentpage="true"]:scale-[1.1] data-[currentpage="true"]:-translate-x-2 hover:scale-[1.0] scale-[0.9] data-[currentpage="true"]:font-bold data-[currentpage="true"]:cursor-default dark:data-[currentpage="true"]:text-amber-100 dark:hover:text-amber-100 dark:text-amber-50 transition-all duration-200`}
+                            class={`w-full text-right text-xl data-[currentpage="true"]:scale-[1.1] data-[currentpage="true"]:-translate-x-2 hover:scale-[1.0] scale-[0.9] data-[currentpage="true"]:font-bold data-[currentpage="true"]:cursor-default dark:data-[currentpage="true"]:text-amber-100 dark:hover:text-amber-100 dark:text-amber-50 transition-all duration-200`}
                             aria-label={`${item.display.toLowerCase()}-href`}
                             href={item.href}
                         >{item.display}</a>
@@ -98,7 +100,7 @@
                     <hr class={`w-[90%] my-1 dark:border-neutral-400/40 border-neutral-800`}/>
 
                     <div class={`w-full flex justify-between items-center px-2`}>
-                        <a class={`font-kola text-base`} href={`/`}>evelynn.place</a>
+                        <a class={`font-kola text-lg`} href={`/`}>evelynn.place</a>
                         <div class={`group`}>
                             <ToggleTheme />
                         </div>
