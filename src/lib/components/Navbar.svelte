@@ -107,10 +107,12 @@
                     </div>
                 </div>
             {/if}
+            
+            <Login />
 
             <button
                 onclick={toggleMenu}
-                class={`apply-card fixed top-4 right-4 z-30 rounded-lg grid place-items-center px-4 py-2`}
+                class={`apply-card fixed top-4 right-2 z-30 rounded-lg grid place-items-center px-4 py-2`}
             >
                 Menu
             </button>

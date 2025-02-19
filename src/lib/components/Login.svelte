@@ -17,7 +17,7 @@
 </script>
 
 {#if !$UserStore}
-    <button onclick={handleClick} class={`apply-card add-button h-full flex items-center gap-2 px-4 rounded-full`}>
+    <button onclick={handleClick} class={`apply-card add-button mobile:fixed mobile:top-4 mobile:right-24 desktop:h-full flex items-center gap-2 px-4 mobile:py-2 mobile:rounded-lg desktop:rounded-full`}>
         {@render googleSvg()}
         <p>Sign In</p>
     </button>
