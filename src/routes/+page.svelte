@@ -6,11 +6,6 @@
     ]
 </script>
 
-<svelte:head>
-    <title>evelynn.place</title>
-    <meta name="description" content="All your academic scheduling in one place">
-</svelte:head>
-
 <main class={`min-h-dvh w-dvw flex md:flex-row flex-col justify-center items-center gap-4`}>
     <img class={`mobile:hidden h-[200px] aspect-square rounded-md`} src={`/assets/images/e.webp`} alt={`evelynn mascot`}/>
     <div class={`flex flex-col gap-2 md:items-start items-center`}>
@@ -25,3 +20,8 @@
         </div>
     </div>
 </main>
+
+<svelte:head>
+    <title>evelynn.place</title>
+    <meta name="description" content="All your academic scheduling in one place">
+</svelte:head>

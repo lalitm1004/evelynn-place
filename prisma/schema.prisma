@@ -15,18 +15,21 @@ datasource db {
 }
 
 model UserProfile {
-  id            String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name          String
-  email         String                @unique
-  type          UserType              @default(STUDENT)
-  role          UserRole              @default(BASE)
-  isWhitelisted Boolean               @default(false) @map("is_whitelisted")
-  createdAt     DateTime              @default(now()) @map("created_at")
+  id                   String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                 String
+  email                String                @unique
+  type                 UserType              @default(STUDENT)
+  role                 UserRole              @default(BASE)
+  isWhitelisted        Boolean               @default(false) @map("is_whitelisted")
+  createdAt            DateTime              @default(now()) @map("created_at")
   //
-  enrollment    Enrollment[]
-  helpsWith     CourseSectionHelper[]
-  academicEvent AcademicEvent[]
-  deployments   UniSyncDeployment?
+  enrollment           Enrollment[]
+  helpsWith            CourseSectionHelper[]
+  academicEvent        AcademicEvent[]
+  deployments          UniSyncDeployment?
+  whitelistApplication WhitelistApplication?
+  helperApplication    HelperApplication[]
+  courseRequest        CourseRequest?
 
   @@map("userprofile")
 }
@@ -76,6 +79,7 @@ model CourseSection {
   enrollment    Enrollment[]
   helpers       CourseSectionHelper[]
   academicEvent AcademicEvent[]
+  applications  HelperApplication[]
 
   @@unique([name, courseId])
   @@map("coursesection")
@@ -111,6 +115,40 @@ model AcademicEvent {
   @@map("academicevent")
 }
 
+model WhitelistApplication {
+  userId    String      @id @map("user_id") @db.Uuid
+  createdAt DateTime    @default(now()) @map("created_at")
+  //
+  user      UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("whitelistapplication")
+}
+
+model HelperApplication {
+  userId          String        @map("user_id") @db.Uuid
+  courseSectionId String        @map("course_section_id") @db.VarChar(12)
+  description     String?
+  createdAt       DateTime      @default(now()) @map("created_at")
+  //
+  user            UserProfile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseSection   CourseSection @relation(fields: [courseSectionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, courseSectionId])
+  @@map("helperapplication")
+}
+
+model CourseRequest {
+  id             String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  courseCode     String      @unique @map("course_code") @db.VarChar(6)
+  courseSections String      @map("course_sections")
+  userId         String      @unique @map("user_id") @db.Uuid
+  createdAt      DateTime    @default(now()) @map("created_at")
+  //
+  user           UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("courserequest")
+}
+
 model UniSyncDeployment {
   userId     String      @unique @db.Uuid
   calendarId String
@@ -130,7 +168,6 @@ enum UserType {
 
 enum UserRole {
   ADMIN
-  MODERATOR
   HELPER
   BASE
 }
