@@ -1,6 +1,10 @@
 import { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } from "$env/static/public";
+import { getUserProfile } from "$lib/server/database/user.db";
+import { RedirectError } from "$lib/types/redirectError.type";
+import type { IRoute } from "$lib/types/route.type";
+import { getPermittedRoutes } from "$lib/utils/getPermittedRoutes";
 import { createServerClient } from "@supabase/ssr";
-import type { Handle } from "@sveltejs/kit";
+import { redirect, type Handle } from "@sveltejs/kit";
 import { sequence } from "@sveltejs/kit/hooks";
 
 const createSupabase: Handle = async ({ event, resolve }) => {
@@ -55,6 +59,31 @@ const createSupabase: Handle = async ({ event, resolve }) => {
     });
 }
 
+const authGuard: Handle = async ({ event, resolve }) => {
+    const user = event.locals.user;
+
+    let permittedRoutes: IRoute[];
+    if (!user) {
+        permittedRoutes = getPermittedRoutes(null)
+    } else {
+        try {
+            const profile = await getUserProfile(user.id);
+            permittedRoutes = getPermittedRoutes(profile);
+        } catch (error) {
+            redirect(303, `/error?type=${error}`)
+        }
+    }
+
+    const currentPath = event.url.pathname;
+    const hasAccess = permittedRoutes.some(path =>
+        currentPath === path.href || currentPath.startsWith(`${path.href}/`)
+    )
+
+    if (!hasAccess) redirect(303, `/error?type=${RedirectError.INVALID_PERMS}`)
+
+    return resolve(event);
+}
+
 const handleVisuals: Handle = async ({ event, resolve }) => {
     const response = await resolve(event, {
         transformPageChunk: ({ html }) => {
@@ -103,4 +132,4 @@ const handleVisuals: Handle = async ({ event, resolve }) => {
     return response;
 }
 
-export const handle: Handle = sequence(createSupabase, handleVisuals);
+export const handle: Handle = sequence(createSupabase, authGuard, handleVisuals);

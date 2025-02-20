@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { page } from "$app/state";
     import { SupaStore, UserStore } from "$lib/stores/SupabaseStore";
 
     const handleClick = () => {
@@ -16,7 +17,7 @@
     }
 </script>
 
-{#if !$UserStore}
+{#if !$UserStore && !page.url.pathname.startsWith('/error')}
     <button onclick={handleClick} class={`apply-card add-button mobile:fixed mobile:top-4 mobile:right-24 desktop:h-full flex items-center gap-2 px-4 mobile:py-2 mobile:rounded-lg desktop:rounded-full`}>
         {@render googleSvg()}
         <p>Sign In</p>
