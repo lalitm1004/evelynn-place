@@ -1,55 +1,106 @@
 <script lang="ts">
+    import { addToast } from '$lib/stores/ToastStore.js';
+
     let { data } = $props();
-    let { profile, user } = $derived(data);
+    let { profile, user, supabase } = $derived(data);
+
+    const handleSignout = () => {
+        return;
+        supabase.auth.signOut();
+    }
+
+    const handleWhitelistRequest = async () => {
+        const response = await fetch('/api/whitelist', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        });
+        const data  = await response.json()
+
+        if (data.success) {
+            addToast({
+                message: 'Whitelist applicaiton submitted successfully!',
+                type: 'success',
+            });
+            return;
+        }
+
+        if (data.message === 'P2002') {
+            addToast({
+                message: 'You have already submitted a whitelist request.',
+                type: 'warning'
+            })
+            return;
+        }
+
+        addToast({
+            message: 'An unexpected error has occured, please try again later.',
+            type: 'danger'
+        })
+        return;
+    }
 </script>
 
 <main class={`min-h-dvh w-dvw flex justify-center items-center`}>
-    <!-- profile card -->
-    <div class={`apply-card relative md:w-[20%] w-[95%] flex flex-col px-4 py-4 gap-2 rounded-lg`}>
-        <div class={`flex justify-center items-center gap-4`}>
-            <img class={`h-[35px] aspect-square rounded-full`} src={user?.user_metadata.picture} alt={`user pfp`}/>
-            <p class={`text-3xl`}>{profile?.name}</p>
+    <div class={`md:w-[20%] w-[95%] min-w-fit flex flex-col gap-4`}>
+        <!-- profile card -->
+        <div class={`apply-card w-full flex flex-col px-4 py-4 gap-2 rounded-lg`}>
+            <div class={`flex justify-center items-center gap-4`}>
+                <img class={`h-[35px] aspect-square rounded-full`} src={user?.user_metadata.picture} alt={`user pfp`}/>
+                <p class={`text-3xl`}>{profile?.name}</p>
+            </div>
+
+            <hr class={`w-full border-neutral-400/40`}/>
+
+            <div class={`grid grid-cols-2 gap-4`}>
+                <div class={`flex gap-2`}>
+                    {@render emailSvg()}
+                    <p class={`text-left`}>Email</p>
+                </div>
+                <p class={`text-right`}>{user?.email}</p>
+
+                <div class={`flex gap-2`}>
+                    {@render unlockedSvg()}
+                    <p class={`text-left`}>Whitelisted</p>
+                </div>
+                <p class={`text-right`}>{String(profile?.isWhitelisted)[0].toUpperCase() + String(profile?.isWhitelisted).slice(1)}</p>
+
+                <div class={`flex gap-2`}>
+                    {@render checkmarkSvg()}
+                    <p class={`text-left`}>Type</p>
+                </div>
+                <p class={`text-right`}>{profile?.type[0]! + profile?.type.toLowerCase().slice(1)}</p>
+
+                <div class={`flex gap-2`}>
+                    {@render shieldSvg()}
+                    <p class={`text-left`}>Role</p>
+                </div>
+                <p class={`text-right`}>{profile?.role[0]! + profile?.role.toLowerCase().slice(1)}</p>
+
+                <div class={`flex gap-2`}>
+                    {@render calendarSvg()}
+                    <p class={`text-left`}>Created On</p>
+                </div>
+                <p class={`text-right`}>
+                    {profile?.createdAt.toLocaleString('en-GB', {
+                        timeZone: "Asia/Kolkata",
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                    })}
+                </p>
+            </div>
         </div>
 
-        <hr class={`w-full border-neutral-400/40`}/>
+        <div class={`apply-card w-full flex flex-wrap px-2 py-2 rounded-lg ${!profile?.isWhitelisted ? 'justify-between' : 'justify-center'}`}>
+            <button class={`apply-card bg-red-600 hover:opacity-70 active:opacity-50 text-neutral-200 px-4 py-2 rounded-lg`} onclick={handleSignout}>
+                Sign Out
+            </button>
 
-        <div class={`grid grid-cols-2 gap-4`}>
-            <div class={`flex gap-2`}>
-                {@render emailSvg()}
-                <p class={`text-left`}>Email</p>
-            </div>
-            <p class={`text-left`}>{user?.email}</p>
-
-            <div class={`flex gap-2`}>
-                {@render unlockedSvg()}
-                <p class={`text-left`}>Whitelisted</p>
-            </div>
-            <p class={`text-right`}>{String(profile?.isWhitelisted)[0].toUpperCase() + String(profile?.isWhitelisted).slice(1)}</p>
-
-            <div class={`flex gap-2`}>
-                {@render checkmarkSvg()}
-                <p class={`text-left`}>Type</p>
-            </div>
-            <p class={`text-right`}>{profile?.type[0]! + profile?.type.toLowerCase().slice(1)}</p>
-
-            <div class={`flex gap-2`}>
-                {@render shieldSvg()}
-                <p class={`text-left`}>Role</p>
-            </div>
-            <p class={`text-right`}>{profile?.role[0]! + profile?.role.toLowerCase().slice(1)}</p>
-
-            <div class={`flex gap-2`}>
-                {@render calendarSvg()}
-                <p class={`text-left`}>Created On</p>
-            </div>
-            <p class={`text-right`}>
-                {profile?.createdAt.toLocaleString('en-GB', {
-                    timeZone: "Asia/Kolkata",
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                })}
-            </p>
+            {#if !profile?.isWhitelisted}
+                <button onclick={handleWhitelistRequest} class={`apply-card bg-green-600 hover:opacity-70 active:opacity-50 text-neutral-200 px-4 py-2 rounded-lg`}>
+                    Request Whitelisting
+                </button>
+            {/if}
         </div>
     </div>
 </main>

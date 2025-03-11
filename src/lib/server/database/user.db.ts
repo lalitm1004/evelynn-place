@@ -5,3 +5,11 @@ export const getUserProfile = async (id: string) => {
         where: { id }
     });
 }
+
+export const requestWhitelisting = async (id: string) => {
+    return await db.whitelistApplication.create({
+        data: {
+            userId: id
+        }
+    });
+}

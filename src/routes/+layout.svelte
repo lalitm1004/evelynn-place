@@ -7,6 +7,8 @@
     import { accessToken, refreshToken, setAccessToken, setRefreshToken } from '$lib/stores/TokenStore.js';
     import { setDevice, setTheme, theme } from '$lib/stores/VisualStore.js';
     import Navbar from '$lib/components/Navbar.svelte';
+    import { ToastStore } from '$lib/stores/ToastStore.js';
+    import Toast from '$lib/components/Toast.svelte';
 
     let { data, children } = $props();
     let { supabase, session, user } = $derived(data);
@@ -20,7 +22,7 @@
 
         if ($accessToken) return;
 
-        const response = await fetch('/auth/refresh', {
+        const response = await fetch('/api/auth/refresh', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ refreshToken: $refreshToken }),
@@ -93,3 +95,9 @@
 
 <Navbar />
 {@render children()}
+
+{#if $ToastStore}
+    {#each $ToastStore as toast (toast.id)}
+        <Toast {...toast} />
+    {/each}
+{/if}

@@ -21,5 +21,5 @@ export const GET = async (event) => {
         }
     }
 
-    redirect(303, '/auth/error');
+    redirect(303, '/api/auth/error');
 }

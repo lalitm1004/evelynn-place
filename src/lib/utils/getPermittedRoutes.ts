@@ -4,7 +4,7 @@ import { UserRole, type UserProfile } from "@prisma/client";
 
 const anonRoutes: IRoute[] = [
     { id: 0, href: '/', display: 'Home' },
-    { id: 1, href: '/auth', display: 'Auth' },
+    { id: 1, href: '/api', display: 'Api' },
     { id: 2, href: '/error', display: 'Error' },
 ]
 

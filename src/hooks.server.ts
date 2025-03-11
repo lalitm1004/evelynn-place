@@ -64,22 +64,21 @@ const authGuard: Handle = async ({ event, resolve }) => {
 
     let permittedRoutes: IRoute[];
     if (!user) {
-        permittedRoutes = getPermittedRoutes(null)
+        permittedRoutes = getPermittedRoutes(null);
     } else {
         try {
             const profile = await getUserProfile(user.id);
             permittedRoutes = getPermittedRoutes(profile);
         } catch (error) {
-            redirect(303, `/error?type=${error}`)
+            redirect(303, `/error?type=${error}`);
         }
     }
 
     const currentPath = event.url.pathname;
     const hasAccess = permittedRoutes.some(path =>
         currentPath === path.href || currentPath.startsWith(`${path.href}/`)
-    )
-
-    if (!hasAccess) redirect(303, `/error?type=${RedirectError.INVALID_PERMS}`)
+    );
+    if (!hasAccess) redirect(303, `/error?type=${user ? RedirectError.INVALID_PERMS : RedirectError.UNAUTHORIZED}`);
 
     return resolve(event);
 }
