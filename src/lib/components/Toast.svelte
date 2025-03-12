@@ -12,7 +12,7 @@
     }
 </script>
 
-<div transition:fly={{ x: '200%' }} class={`fixed bottom-2 right-2 flex justify-center items-center gap-2 py-4 px-6 overflow-hidden rounded-lg ${toastStyles[type!]}`}>
+<div transition:fly={{ y: '200%' }} class={`fixed bottom-2 left-1/2 -translate-x-1/2 md:max-w-[500px] md:w-fit w-[90%] flex justify-center items-center gap-2 md:py-4 py-2 md:px-6 px-4 overflow-hidden rounded-lg ${toastStyles[type!]}`}>
     {#if type === 'default'}
         <svelte:element this={null} />
     {:else if type === 'success'}
@@ -23,9 +23,7 @@
         {@render dangerSvg()}
     {/if}
 
-    <p>
-        {message}
-    </p>
+    <p>{message}</p>
 </div>
 
 {#snippet successSvg()}
