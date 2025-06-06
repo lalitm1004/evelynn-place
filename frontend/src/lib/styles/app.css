@@ -1,1 +1,17 @@
 @import 'tailwindcss';
+
+@theme {
+    --font-bespoke-stencil: 'BespokeStencil', sans-serif;
+    --font-raleway: 'Raleway', sans-serif;
+    --font-inter: 'Inter', sans-serif;
+}
+
+@font-face {
+  font-family: 'BespokeStencil';
+  src: url('/assets/fonts/BespokeStencil/BespokeStencil-Variable.woff2') format('woff2'),
+    url('/assets/fonts/BespokeStencil/BespokeStencil-Variable.woff') format('woff'),
+    url('/assets/fonts/BespokeStencil/BespokeStencil-Variable.ttf') format('truetype');
+  font-weight: 300 800;
+  font-display: swap;
+  font-style: normal;
+}
