@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model UserProfile {
+  id                   String                @id @db.Uuid
+  name                 String
+  email                String                @unique
+  type                 UserType              @default(BASE)
+  isWhitelisted        Boolean               @default(false) @map("is_whitelisted")
+  createdAt            DateTime              @default(dbgenerated("now()")) @map("created_at")
+  ///
+  enrollments          Enrollment[]
+  createdEvents        AcademicEvent[]
+  whitelistApplication WhitelistApplication?
+  courseSectionHelper  CourseSectionHelper[]
+  helperApplication    HelperApplication[]
+  courseRequests       CourseRequest[]
+
+  @@map("userprofile")
+}
+
+model Semester {
+  id       String       @id @db.VarChar(6)
+  year     Int
+  type     SemesterType
+  isActive Boolean      @map("is_active")
+  Course   Course[]
+
+  @@map("semester")
+}
+
+model Course {
+  id            String          @id @default(dbgenerated("nanoid(12)")) @db.VarChar(12)
+  semesterId    String          @map("semester_id") @db.VarChar(6)
+  code          String          @db.VarChar(6)
+  title         String
+  description   String?
+  ///
+  semester      Semester        @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+  CourseSection CourseSection[]
+
+  @@unique([semesterId, code])
+  @@map("course")
+}
+
+model CourseSection {
+  id                 String                @id @default(dbgenerated("nanoid(12)")) @db.VarChar(12)
+  courseId           String                @map("course_id") @db.VarChar(12)
+  name               String
+  type               CourseSectionType
+  ///
+  enrollments        Enrollment[]
+  academicEvents     AcademicEvent[]
+  course             Course                @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  helpers            CourseSectionHelper[]
+  helperApplications HelperApplication[]
+
+  @@unique([courseId, name])
+  @@map("coursesection")
+}
+
+model Enrollment {
+  userId          String        @map("user_id") @db.Uuid
+  courseSectionId String        @map("course_section_id") @db.VarChar(12)
+  ///
+  user            UserProfile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseSection   CourseSection @relation(fields: [courseSectionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, courseSectionId])
+  @@map("enrollment")
+}
+
+model CourseSectionHelper {
+  userId          String        @map("user_id") @db.Uuid
+  courseSectionId String        @map("course_section_id") @db.VarChar(12)
+  ///
+  user            UserProfile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseSection   CourseSection @relation(fields: [courseSectionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, courseSectionId])
+  @@map("coursesectionhelper")
+}
+
+model AcademicEvent {
+  id              String            @id @default(dbgenerated("nanoid(24)")) @db.VarChar(24)
+  courseSectionId String            @map("course_section_id") @db.VarChar(12)
+  title           String
+  description     String?
+  type            AcademicEventType
+  isGraded        Boolean           @default(true) @map("is_graded")
+  isOptional      Boolean           @default(false) @map("is_optional")
+  deadline        DateTime
+  createdByUserId String            @map("created_by_user_id") @db.Uuid
+  createdAt       DateTime          @default(dbgenerated("now()")) @map("created_at")
+  ///
+  courseSection   CourseSection     @relation(fields: [courseSectionId], references: [id], onDelete: Cascade)
+  createdByUser   UserProfile       @relation(fields: [createdByUserId], references: [id], onDelete: NoAction)
+
+  @@map("academicevent")
+}
+
+model WhitelistApplication {
+  userId    String      @id @map("user_id") @db.Uuid
+  createdAt DateTime    @default(dbgenerated("now()")) @map("created_at")
+  ///
+  user      UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("whitelistapplication")
+}
+
+model HelperApplication {
+  userId          String        @map("user_id") @db.Uuid
+  courseSectionId String        @map("course_section_id") @db.VarChar(12)
+  description     String?
+  createdAt       DateTime      @default(dbgenerated("now()")) @map("created_at")
+  ///
+  user            UserProfile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseSection   CourseSection @relation(fields: [courseSectionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, courseSectionId])
+  @@map("helperapplication")
+}
+
+model CourseRequest {
+  id                String      @id @default(dbgenerated("nanoid(12)")) @db.VarChar(12)
+  requestedByUserId String      @map("requested_by_user_id") @db.Uuid
+  courseCode        String      @map("course_code") @db.VarChar(6)
+  courseSections    String      @map("course_sections")
+  createdAt         DateTime    @default(dbgenerated("now()")) @map("created_at")
+  ///
+  requestedBy       UserProfile @relation(fields: [requestedByUserId], references: [id], onDelete: Cascade)
+
+  @@map("courserequest")
+}
+
+////////////////////////////////////////////////
+
+enum UserType {
+  ADMIN
+  HELPER
+  BASE
+}
+
+enum SemesterType {
+  SPRING
+  SUMMER
+  MONSOON
+  WINTER
+}
+
+enum CourseSectionType {
+  LECTURE
+  TUTORIAL
+  PRACTICAL
+}
+
+enum AcademicEventType {
+  ASSIGNMENT
+  EVALUATION
+}
