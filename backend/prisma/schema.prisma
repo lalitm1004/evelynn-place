@@ -21,6 +21,7 @@ model UserProfile {
   courseSectionHelper  CourseSectionHelper[]
   helperApplication    HelperApplication[]
   courseRequests       CourseRequest[]
+  eventStatus          AcademicEventStatus[]
 
   @@map("userprofile")
 }
@@ -88,21 +89,34 @@ model CourseSectionHelper {
 }
 
 model AcademicEvent {
-  id              String            @id @default(dbgenerated("nanoid(24)")) @db.VarChar(24)
-  courseSectionId String            @map("course_section_id") @db.VarChar(12)
+  id              String                @id @default(dbgenerated("nanoid(24)")) @db.VarChar(24)
+  courseSectionId String                @map("course_section_id") @db.VarChar(12)
   title           String
   description     String?
   type            AcademicEventType
-  isGraded        Boolean           @default(true) @map("is_graded")
-  isOptional      Boolean           @default(false) @map("is_optional")
+  isGraded        Boolean               @default(true) @map("is_graded")
+  isOptional      Boolean               @default(false) @map("is_optional")
   deadline        DateTime
-  createdByUserId String            @map("created_by_user_id") @db.Uuid
-  createdAt       DateTime          @default(dbgenerated("now()")) @map("created_at")
+  createdByUserId String                @map("created_by_user_id") @db.Uuid
+  createdAt       DateTime              @default(dbgenerated("now()")) @map("created_at")
   ///
-  courseSection   CourseSection     @relation(fields: [courseSectionId], references: [id], onDelete: Cascade)
-  createdByUser   UserProfile       @relation(fields: [createdByUserId], references: [id], onDelete: NoAction)
+  courseSection   CourseSection         @relation(fields: [courseSectionId], references: [id], onDelete: Cascade)
+  createdByUser   UserProfile           @relation(fields: [createdByUserId], references: [id], onDelete: NoAction)
+  eventStatus     AcademicEventStatus[]
 
   @@map("academicevent")
+}
+
+model AcademicEventStatus {
+  academicEventId String                  @map("academic_event_id") @db.VarChar(24)
+  userId          String                  @map("user_id") @db.Uuid
+  status          AcademicEventStatusType @default(INCOMPLETE)
+  ///
+  academicEvent   AcademicEvent           @relation(fields: [academicEventId], references: [id], onDelete: Cascade)
+  user            UserProfile             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([academicEventId, userId])
+  @@map("academiceventstatus")
 }
 
 model WhitelistApplication {
@@ -163,4 +177,10 @@ enum CourseSectionType {
 enum AcademicEventType {
   ASSIGNMENT
   EVALUATION
+}
+
+enum AcademicEventStatusType {
+  INCOMPLETE
+  COMPLETE
+  IGNORE
 }

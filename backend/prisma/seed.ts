@@ -26,7 +26,7 @@ async function createUserTriggers() {
                     raw_app_meta_data = jsonb_set(
                         COALESCE(raw_app_meta_data, '{}'::jsonb),
                         '{custom_claims}',
-                        '{"type": "BASE"}',
+                        '{"type": "BASE", "is_whitelisted": false}',
                         true
                     ) WHERE id = new.id;
 
@@ -52,7 +52,8 @@ async function createUserTriggers() {
                     COALESCE(raw_app_meta_data, '{}'::jsonb),
                     '{custom_claims}',
                     json_build_object(
-                        'type', NEW.type
+                        'type', NEW.type,
+                        'is_whitelisted', NEW.is_whitelisted
                     )::jsonb,
                     true
                 ) WHERE id = NEW.id;
@@ -66,7 +67,8 @@ async function createUserTriggers() {
                 AFTER UPDATE OF type ON public.UserProfile
                 FOR EACH ROW
                 WHEN (
-                    OLD.type IS DISTINCT FROM NEW.type
+                    OLD.type IS DISTINCT FROM NEW.type OR
+                    OLD.is_whitelisted IS DISTINCT FROM NEW.is_whitelisted
                 ) EXECUTE PROCEDURE fnOnUserUpdate();
         `,
     Prisma.sql`
