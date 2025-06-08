@@ -1,17 +1,18 @@
 import type { User } from "@supabase/supabase-js";
 
-export enum UserType {
-    ADMIN = 'ADMIN',
-    HELPER = 'HELPER',
-    PLAYER = 'PLAYER',
-};
+export const USER_TYPE = {
+    ADMIN: "ADMIN",
+    HELPER: "HELPER",
+    BASE: "BASE",
+} as const;
+export type UserType = typeof USER_TYPE[keyof typeof USER_TYPE]
 
-export interface ICustomClaims {
-    type: UserType,
+export type CustomClaims = {
+    type: UserType;
+    is_whitelisted: boolean;
 }
 
-export const getCustomClaims = (user: User | null): ICustomClaims => {
-    return (user && user.app_metadata.custom_claims) || {
-        type: UserType.PLAYER,
-    };
+export const getCustomClaims = (user: User | null): CustomClaims | null => {
+    if (!user) return null;
+    return user.app_metadata.custom_claims
 }

@@ -1,4 +1,4 @@
-import { DEVICE_TOKEN } from "$lib/stores/VisualStore";
+import { DEVICE_TOKEN_NAME } from "$lib/stores/VisualStore";
 import type { Handle } from "@sveltejs/kit";
 
 const handleVisuals: Handle = async ({ event, resolve }) => {
@@ -6,12 +6,12 @@ const handleVisuals: Handle = async ({ event, resolve }) => {
         transformPageChunk: ({ html }) => {
             const maxAgeSec = 60 * 60 * 24 * 365;
 
-            let currentDevice = event.cookies.get(DEVICE_TOKEN);
+            let currentDevice = event.cookies.get(DEVICE_TOKEN_NAME);
             if (!currentDevice) {
                 const userOnMobile = event.request.headers.get('sec-ch-ua-mobile') === '?1';
                 currentDevice = userOnMobile ? 'mobile' : 'desktop';
 
-                event.cookies.set(DEVICE_TOKEN, currentDevice, {
+                event.cookies.set(DEVICE_TOKEN_NAME, currentDevice, {
                     path: '/',
                     expires: new Date(Date.now() + maxAgeSec),
                     maxAge: maxAgeSec,

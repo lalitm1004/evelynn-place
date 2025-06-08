@@ -48,7 +48,7 @@ const createPersistentStore = <T>({
                 console.error(`Error encoding data for ${tokenName}: `, e);
             }
         } else {
-            document.cookie = `${tokenName}=null;path=/;expires=Thu, 01 1970 00:00:01 GMT`
+            document.cookie = `${tokenName}=null;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`
         }
 
         store.set(data);
