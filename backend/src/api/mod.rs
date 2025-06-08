@@ -1,3 +1,1 @@
-mod test;
-
-pub use test::TestApi;
+pub mod test;

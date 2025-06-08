@@ -1,27 +1,26 @@
-use poem::web::Data;
 use poem_openapi::{Object, OpenApi, payload::Json};
 
-use crate::Claims;
+use crate::middleware::{JwtAuth, JwtErrorResponses};
 
 #[derive(Object)]
-struct PenisResponse {
-    genital: String,
+struct EchoClaimsResponse {
+    claims: String,
 }
 
 pub struct TestApi;
 #[OpenApi]
 impl TestApi {
-    #[oai(path = "/test", method = "get")]
-    async fn hello(&self, Data(claims): Data<&Claims>) -> Json<PenisResponse> {
-        let response = if let Ok(some_str) = serde_json::to_string(claims) {
+    #[oai(path = "/test/echo-claims", method = "get")]
+    async fn echo_claims(
+        &self,
+        auth: JwtAuth,
+    ) -> Result<Json<EchoClaimsResponse>, JwtErrorResponses> {
+        let response = if let Ok(some_str) = serde_json::to_string(&auth.0) {
             some_str
         } else {
-            "Bro".into()
+            "Something went wrong D:".to_string()
         };
 
-        Json(PenisResponse {
-            // genital: jwt_claims.clone().0,
-            genital: response,
-        })
+        Ok(Json(EchoClaimsResponse { claims: response }))
     }
 }

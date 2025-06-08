@@ -1,58 +1,69 @@
 pub mod claims;
 
 use claims::Claims;
-use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
-use poem::{Endpoint, Middleware, http::StatusCode};
+use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode, errors::ErrorKind};
+use poem_openapi::{ApiResponse, Object, SecurityScheme, auth::Bearer, payload::Json};
 
-use crate::ENV_VARIABLES;
+use crate::config::CONFIG;
 
-pub struct JwtMiddleware;
+#[derive(SecurityScheme)]
+#[oai(
+    ty = "bearer",
+    key_name = "JWT",
+    key_in = "header",
+    checker = "jwt_checker"
+)]
+pub struct JwtAuth(pub Claims);
 
-impl<E: Endpoint> Middleware<E> for JwtMiddleware {
-    type Output = JwtMiddlewareImpl<E>;
+#[derive(ApiResponse)]
+pub enum JwtErrorResponses {
+    #[oai(status = 401)]
+    Unauthorized(Json<ErrorResponse>),
 
-    fn transform(&self, ep: E) -> Self::Output {
-        JwtMiddlewareImpl { ep }
-    }
+    #[oai(status = 403)]
+    Forbidden(Json<ErrorResponse>),
+
+    #[oai(status = 400)]
+    BadRequest(Json<ErrorResponse>),
 }
 
-pub struct JwtMiddlewareImpl<E> {
-    pub ep: E,
+#[derive(Object)]
+pub struct ErrorResponse {
+    pub code: String,
+    pub message: String,
+    #[oai(skip_serializing_if = "Option::is_none")]
+    pub details: Option<String>,
 }
 
-impl<E: Endpoint> Endpoint for JwtMiddlewareImpl<E> {
-    type Output = E::Output;
+async fn jwt_checker(_req: &poem::Request, bearer: Bearer) -> poem::Result<Claims> {
+    let mut validation = Validation::new(Algorithm::HS256);
+    validation.validate_exp = true;
+    validation.set_audience(&["authenticated"]);
 
-    async fn call(&self, mut req: poem::Request) -> poem::Result<Self::Output> {
-        let token = req
-            .headers()
-            .get("Authorization")
-            .and_then(|value| value.to_str().ok())
-            .and_then(|s| s.strip_prefix("Bearer "))
-            .ok_or_else(|| poem::Error::from_string("Missing token", StatusCode::UNAUTHORIZED))?;
+    let token_data = decode::<Claims>(
+        &bearer.token,
+        &DecodingKey::from_secret(CONFIG.jwt_secret.clone().as_bytes()),
+        &validation,
+    )
+    .map_err(|e| match e.kind() {
+        ErrorKind::ExpiredSignature => JwtErrorResponses::Unauthorized(Json(ErrorResponse {
+            code: "JWT_EXPIRED".to_string(),
+            message: "Token has expired".to_string(),
+            details: Some("Please renew your authentication".to_string()),
+        })),
 
-        let mut validation = Validation::new(Algorithm::HS256);
-        validation.validate_exp = true;
-        validation.set_audience(&["authenticated"]);
+        ErrorKind::InvalidSignature => JwtErrorResponses::Unauthorized(Json(ErrorResponse {
+            code: "JWT_INVALID".to_string(),
+            message: "Invalid token signature".to_string(),
+            details: None,
+        })),
 
-        let token_data = decode::<Claims>(
-            token,
-            &DecodingKey::from_secret(ENV_VARIABLES.jwt_secret.clone().as_bytes()),
-            &validation,
-        )
-        .map_err(|e| match e.kind() {
-            jsonwebtoken::errors::ErrorKind::ExpiredSignature => {
-                println!("{}", e);
-                poem::Error::from_string("Token expired", StatusCode::UNAUTHORIZED)
-            }
-            _ => {
-                println!("{}", e);
-                poem::Error::from_string("Invalid Token", StatusCode::UNAUTHORIZED)
-            }
-        })?;
+        _ => JwtErrorResponses::BadRequest(Json(ErrorResponse {
+            code: "JWT_MALFORMED".to_string(),
+            message: "Invalid token format".to_string(),
+            details: Some("Ensure you're sending a properly formatted JWT".to_string()),
+        })),
+    })?;
 
-        req.extensions_mut().insert(token_data.claims);
-
-        self.ep.call(req).await
-    }
+    Ok(token_data.claims)
 }

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 pub struct Claims {
     #[serde(rename = "sub")]
     pub user_id: String,
-    // pub exp: usize,
+
     #[serde(rename = "app_metadata")]
     pub app_metadata: AppMetadata,
 }
@@ -29,4 +29,10 @@ pub enum UserType {
     Admin,
     Helper,
     Base,
+}
+
+impl Claims {
+    pub fn get_type(&self) -> &UserType {
+        &self.app_metadata.custom_claims.user_type
+    }
 }
